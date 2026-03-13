@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Title and meta injected by JS -->
+  <title>Painting — Dejvi Van De Veire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #f0ebe4;
+      --ink: #1a1814;
+      --muted: #8a8278;
+      --accent: #c94a2a;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    #grain {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; opacity: 0.18;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; left: 0; top: 0; height: 100vh; width: 42px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 28px; z-index: 200;
+    }
+    nav a {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      text-decoration: none; color: var(--ink);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; opacity: 0.35; transition: opacity 0.25s;
+    }
+    nav a:hover, nav a.active { opacity: 1; }
+
+    /* BACK LINK */
+    .back-link {
+      position: fixed; top: 28px; left: 60px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ink);
+      text-decoration: none; opacity: 0.45; z-index: 200;
+      transition: opacity 0.2s;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .back-link::before { content: '←'; font-size: 13px; }
+    .back-link:hover { opacity: 1; }
+
+    /* MAIN */
+    main {
+      padding-left: 42px;
+      position: relative; z-index: 1;
+      min-height: 100vh;
+    }
+
+    /* LOADING STATE */
+    #loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; font-size: 11px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); opacity: 0.5;
+    }
+
+    /* PAINTING DETAIL */
+    #detail { display: none; }
+
+    .detail-wrap {
+      padding: 14vh 52px 80px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 72px;
+      align-items: start;
+    }
+
+    /* IMAGE COLUMN */
+    .img-col {}
+    .main-img-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+    .main-img {
+      width: 100%; display: block;
+      max-height: 85vh; object-fit: contain;
+      object-position: top left;
+    }
+    /* Detail images grid */
+    .detail-imgs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .detail-img {
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
+      cursor: zoom-in;
+      transition: opacity 0.3s;
+    }
+    .detail-img:hover { opacity: 0.85; }
+
+    /* Lightbox */
+    #lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92); z-index: 999;
+      align-items: center; justify-content: center;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 90vw; max-height: 90vh;
+      object-fit: contain; display: block;
+    }
+    #lightbox-close {
+      position: absolute; top: 24px; right: 28px;
+      color: rgba(242,237,232,0.6); font-size: 22px;
+      cursor: pointer; background: none; border: none;
+      font-family: 'Barlow', sans-serif; line-height: 1;
+    }
+
+    /* INFO COLUMN */
+    .info-col { padding-top: 8px; }
+
+    .painting-year {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+
+    h1.painting-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 6vw, 80px);
+      line-height: 0.9; color: var(--ink); margin-bottom: 20px;
+    }
+
+    .painting-price {
+      font-size: 22px; font-weight: 300; color: var(--ink); margin-bottom: 6px;
+    }
+    .painting-price.sold-price { color: var(--muted); font-size: 16px; }
+
+    .painting-dims {
+      font-size: 12px; color: var(--muted); margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .painting-desc {
+      font-size: 14px; font-weight: 300; line-height: 1.85;
+      color: var(--ink); max-width: 46ch; margin-bottom: 36px;
+      border-top: 1px solid rgba(26,24,20,0.1); padding-top: 28px;
+    }
+
+    /* AVAILABILITY BADGE */
+    .avail-badge {
+      display: inline-block; font-size: 9px; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase; padding: 4px 10px;
+      margin-bottom: 24px;
+    }
+    .avail-badge.available { background: #2a6b3a; color: #fff; }
+    .avail-badge.sold-badge { background: rgba(26,24,20,0.12); color: var(--muted); }
+
+    /* CTA BUTTON */
+    .btn-cta {
+      display: inline-block; padding: 12px 32px; font-size: 11px;
+      font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-cta.available { background: var(--ink); color: var(--cream) !important; }
+    .btn-cta.available:hover { background: var(--accent); }
+    .btn-cta.sold-btn {
+      background: var(--ink); color: var(--cream) !important;
+      opacity: 0.25; cursor: not-allowed;
+    }
+
+    /* ── INQUIRY FORM MODAL ── */
+    #form-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(10,8,6,0.65); z-index: 500;
+      align-items: center; justify-content: center;
+      padding: 24px;
+      backdrop-filter: blur(3px);
+    }
+    #form-overlay.open { display: flex; }
+
+    .form-modal {
+      background: var(--cream);
+      padding: 48px 44px;
+      max-width: 480px; width: 100%;
+      position: relative;
+    }
+
+    .form-close {
+      position: absolute; top: 18px; right: 20px;
+      background: none; border: none; cursor: pointer;
+      font-size: 20px; color: var(--muted); line-height: 1;
+      font-family: 'Barlow', sans-serif;
+    }
+    .form-close:hover { color: var(--ink); }
+
+    .form-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px; line-height: 0.95; color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .form-subtitle {
+      font-size: 12px; color: var(--muted); margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 7px;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%; background: transparent;
+      border: none; border-bottom: 1px solid rgba(26,24,20,0.2);
+      padding: 8px 0; font-family: 'Barlow', sans-serif;
+      font-size: 14px; font-weight: 300; color: var(--ink);
+      outline: none; transition: border-color 0.2s;
+      resize: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--ink); }
+    .form-group input[readonly] {
+      color: var(--muted); cursor: default;
+    }
+    .form-group textarea { min-height: 80px; }
+
+    .form-submit {
+      width: 100%; padding: 12px; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; border: none;
+      cursor: pointer; background: var(--ink); color: var(--cream);
+      transition: background 0.2s; margin-top: 8px;
+      font-family: 'Barlow', sans-serif;
+    }
+    .form-submit:hover { background: var(--accent); }
+    .form-submit:disabled { opacity: 0.5; cursor: wait; }
+
+    .form-note {
+      font-size: 11px; color: var(--muted); margin-top: 14px;
+      line-height: 1.6; font-weight: 300;
+    }
+
+    /* SUCCESS STATE */
+    #form-success {
+      display: none; text-align: center; padding: 20px 0;
+    }
+    #form-success .checkmark {
+      font-size: 32px; margin-bottom: 16px; display: block;
+    }
+    #form-success h3 {
+      font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+      color: var(--ink); margin-bottom: 8px;
+    }
+    #form-success p {
+      font-size: 13px; color: var(--muted); font-weight: 300; max-width: 32ch; margin: 0 auto;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(26,24,20,0.1); padding: 32px 52px;
+      display: flex; justify-content: space-between;
+      font-size: 10px; letter-spacing: 0.08em; color: var(--muted);
+      position: relative; z-index: 1;
+    }
+
+    .fi { opacity: 0; transform: translateY(16px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fi.in { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) {
+      .detail-wrap { grid-template-columns: 1fr; gap: 40px; padding-top: 10vh; }
+      .main-img { max-height: 70vh; }
+    }
+    @media (max-width: 580px) {
+      .detail-wrap, footer { padding-left: 16px; padding-right: 16px; }
+      .form-modal { padding: 36px 24px; }
+      .back-link { left: 52px; top: 16px; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="grain" aria-hidden="true"></canvas>
+
+<nav aria-label="Main navigation">
+  <a href="index.html" class="active">Paintings</a>
+  <a href="films.html">Films</a>
+  <a href="bio.html">Bio</a>
+</nav>
+<a href="index.html" class="back-link" aria-label="Back to all paintings">All paintings</a>
+
+<main>
+  <div id="loading" aria-live="polite">Loading</div>
+
+  <div id="detail">
+    <div class="detail-wrap">
+      <!-- IMAGE COLUMN -->
+      <div class="img-col fi">
+        <div class="main-img-wrap">
+          <img id="main-img" src="" alt="" class="main-img">
+        </div>
+        <div class="detail-imgs" id="detail-imgs">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- INFO COLUMN -->
+      <div class="info-col fi">
+        <p class="painting-year" id="p-year"></p>
+        <h1 class="painting-title" id="p-title"></h1>
+        <span class="avail-badge" id="p-badge"></span>
+        <p class="painting-price" id="p-price"></p>
+        <p class="painting-dims" id="p-dims"></p>
+        <p class="painting-desc" id="p-desc"></p>
+        <button class="btn-cta" id="p-cta">Buy now</button>
+      </div>
+    </div>
+
+    <footer>
+      <address style="font-style:normal">Dejvi Van De Veire · Brussels, Belgium</address>
+      <span>© 2025</span>
+    </footer>
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" role="dialog" aria-label="Enlarged image">
+  <button id="lightbox-close" aria-label="Close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- INQUIRY FORM OVERLAY -->
+<div id="form-overlay" role="dialog" aria-modal="true" aria-label="Purchase inquiry">
+  <div class="form-modal">
+    <button class="form-close" id="form-close-btn" aria-label="Close form">✕</button>
+
+    <!-- FORM -->
+    <div id="form-inner">
+      <h2 class="form-title">Purchase<br>Inquiry</h2>
+      <p class="form-subtitle">Dejvi will get back to you within 48 hours.</p>
+
+      <!--
+        IMPORTANT: Replace YOUR_FORM_ID below with your actual Formspree form ID.
+        1. Go to formspree.io and create a free account
+        2. Create a new form — set the email to Dejvi's email address
+        3. Copy the form ID (looks like: xpwzgkqr) and paste it below
+        URL format: https://formspree.io/f/YOUR_FORM_ID
+      -->
+      <form id="inquiry-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="hidden" name="_subject" id="form-subject" value="Painting inquiry">
+        <!-- Honeypot anti-spam -->
+        <input type="text" name="_gotcha" style="display:none">
+
+        <div class="form-group">
+          <label for="painting-name">Painting</label>
+          <input type="text" id="painting-name" name="painting" readonly>
+        </div>
+
+        <div class="form-group">
+          <label for="buyer-name">Your name</label>
+          <input type="text" id="buyer-name" name="name" required placeholder="First and last name">
+        </div>
+
+        <div class="form-group">
+          <label for="buyer-email">Email address</label>
+          <input type="email" id="buyer-email" name="email" required placeholder="your@email.com">
+        </div>
+
+        <div class="form-group">
+          <label for="buyer-message">Message (optional)</label>
+          <textarea id="buyer-message" name="message" placeholder="Any questions about the work, shipping, etc."></textarea>
+        </div>
+
+        <button type="submit" class="form-submit" id="form-submit-btn">Send inquiry</button>
+        <p class="form-note">By submitting this form you agree to be contacted by Dejvi Van De Veire regarding this painting.</p>
+      </form>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="form-success">
+      <span class="checkmark">✓</span>
+      <h3>Inquiry Sent</h3>
+      <p>Thank you. Dejvi will be in touch with you shortly.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── PAINTING DATABASE ──
+  // To add a new painting: copy one entry, change the id and all fields.
+  // Images: replace the Unsplash URLs with your own image paths e.g. "images/murphy-main.jpg"
+  const PAINTINGS = {
+    'murphy-2025': {
+      title: 'Murphy',
+      year: '2025',
+      price: '€735',
+      sold: false,
+      medium: 'Mixed media on canvas',
+      dimensions: '80 × 100 cm',
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      mainImg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&crop=entropy&cs=tinysrgb',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=800&q=80',
+        'https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=800&q=80',
+      ]
+    },
+    'sunset-2025': {
+      title: 'Sunset',
+      year: '2025',
+      price: 'Sold',
+      sold: true,
+      medium: 'Oil on linen',
+      dimensions: '40 × 40 cm',
+      description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.',
+      mainImg: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&q=80',
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=800&q=80',
+      ]
+    },
+    'untitled-3-2024': {
+      title: 'Untitled No. 3',
+      year: '2024',
+      price: '€580',
+      sold: false,
+      medium: 'Oil on canvas',
+      dimensions: '60 × 80 cm',
+      description: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae.',
+      mainImg: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80',
+        'https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=800&q=80',
+      ]
+    },
+    'kids-2023': {
+      title: 'Kids',
+      year: '2023',
+      price: 'Sold',
+      sold: true,
+      medium: 'Acrylic on canvas',
+      dimensions: '50 × 70 cm',
+      description: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum.',
+      mainImg: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+        'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&q=80',
+      ]
+    },
+    'dusk-2025': {
+      title: 'Dusk',
+      year: '2025',
+      price: '€920',
+      sold: false,
+      medium: 'Oil on linen',
+      dimensions: '100 × 120 cm',
+      description: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate.',
+      mainImg: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=800&q=80',
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+      ]
+    },
+    'marrow-2024': {
+      title: 'Marrow',
+      year: '2024',
+      price: '€450',
+      sold: false,
+      medium: 'Acrylic and oil on canvas',
+      dimensions: '40 × 50 cm',
+      description: 'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.',
+      mainImg: 'https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=1200&q=85',
+      detailImgs: [
+        'https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=800&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=800&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80',
+      ]
+    }
+  };
+
+  // ── LOAD PAINTING FROM URL PARAM ──
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const painting = PAINTINGS[id];
+
+  const loading = document.getElementById('loading');
+  const detail = document.getElementById('detail');
+
+  if (!painting) {
+    loading.textContent = 'Painting not found.';
+  } else {
+    loading.style.display = 'none';
+    detail.style.display = 'block';
+
+    // Page meta
+    document.title = `${painting.title} (${painting.year}) — Dejvi Van De Veire`;
+
+    // Populate fields
+    document.getElementById('main-img').src = painting.mainImg;
+    document.getElementById('main-img').alt = `${painting.title} (${painting.year}) by Dejvi Van De Veire`;
+    document.getElementById('p-year').textContent = `${painting.year} · ${painting.medium}`;
+    document.getElementById('p-title').textContent = painting.title;
+    document.getElementById('p-price').textContent = painting.price;
+    document.getElementById('p-dims').textContent = painting.dimensions;
+    document.getElementById('p-desc').textContent = painting.description;
+
+    if (painting.sold) {
+      document.getElementById('p-price').classList.add('sold-price');
+      document.getElementById('p-badge').textContent = 'Sold';
+      document.getElementById('p-badge').classList.add('sold-badge');
+      const cta = document.getElementById('p-cta');
+      cta.textContent = 'Sold';
+      cta.classList.add('sold-btn');
+      cta.disabled = true;
+    } else {
+      document.getElementById('p-badge').textContent = 'Available';
+      document.getElementById('p-badge').classList.add('available');
+      const cta = document.getElementById('p-cta');
+      cta.textContent = 'Buy now';
+      cta.classList.add('available');
+      cta.addEventListener('click', openForm);
+    }
+
+    // Detail images
+    const dimsEl = document.getElementById('detail-imgs');
+    painting.detailImgs.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `${painting.title} — detail ${i+1}`;
+      img.className = 'detail-img';
+      img.loading = 'lazy';
+      img.width = 400; img.height = 400;
+      img.addEventListener('click', () => openLightbox(src, img.alt));
+      dimsEl.appendChild(img);
+    });
+
+    // Pre-fill form
+    document.getElementById('painting-name').value = `${painting.title} (${painting.year}) — ${painting.price}`;
+    document.getElementById('form-subject').value = `Purchase inquiry: ${painting.title} (${painting.year})`;
+
+    // Fade in
+    setTimeout(() => {
+      document.querySelectorAll('.fi').forEach((el, i) => {
+        setTimeout(() => el.classList.add('in'), i * 100);
+      });
+    }, 80);
+  }
+
+  // ── LIGHTBOX ──
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  function openLightbox(src, alt) {
+    lightboxImg.src = src; lightboxImg.alt = alt;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  lightbox.addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+
+  // ── INQUIRY FORM ──
+  const overlay = document.getElementById('form-overlay');
+  function openForm() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeForm() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('form-close-btn').addEventListener('click', closeForm);
+  overlay.addEventListener('click', e => { if(e.target === overlay) closeForm(); });
+
+  // Formspree AJAX submission
+  const form = document.getElementById('inquiry-form');
+  const submitBtn = document.getElementById('form-submit-btn');
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        document.getElementById('form-inner').style.display = 'none';
+        document.getElementById('form-success').style.display = 'block';
+      } else {
+        throw new Error('Server error');
+      }
+    } catch(err) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Try again';
+      alert('Something went wrong. Please email directly: hello@dejvivandeveire.com');
+    }
+  });
+
+  // ── GRAIN ──
+  const c = document.getElementById('grain'), ctx = c.getContext('2d');
+  let last = 0; const iv = 1000/16;
+  function resize(){ c.width = innerWidth; c.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function grain(t){ requestAnimationFrame(grain); if(t-last<iv) return; last=t;
+    const d=ctx.createImageData(c.width,c.height),b=d.data;
+    for(let i=0;i<b.length;i+=4){const v=(Math.random()*255)|0;b[i]=b[i+1]=b[i+2]=v;b[i+3]=255;}
+    ctx.putImageData(d,0,0); }
+  requestAnimationFrame(grain);
+</script>
+</body>
+</html>
