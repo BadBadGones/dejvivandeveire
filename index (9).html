@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dejvi Van De Veire — Artist & Filmmaker | Brussels, Belgium</title>
+  <meta name="description" content="Dejvi Van De Veire is a Brussels-based artist and filmmaker. Browse and buy his original paintings direct from the studio.">
+  <link rel="canonical" href="https://dejvivandeveire.com/">
+  <meta property="og:title" content="Dejvi Van De Veire — Artist & Filmmaker | Brussels">
+  <meta property="og:description" content="Original paintings for sale by Brussels-based artist Dejvi Van De Veire.">
+  <meta property="og:url" content="https://dejvivandeveire.com/">
+  <meta property="og:type" content="website">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"VisualArtist","name":"Dejvi Van De Veire","url":"https://dejvivandeveire.com","jobTitle":"Artist, Filmmaker","address":{"@type":"PostalAddress","addressLocality":"Brussels","addressCountry":"BE"}}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream: #f0ebe4; --ink: #1a1814; --muted: #8a8278; --accent: #c94a2a; --img-w: 300px; --img-h: 375px; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--ink); font-family: 'Barlow', sans-serif; font-weight: 300; overflow-x: hidden; }
+    #grain { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.18; }
+    nav { position: fixed; left: 0; top: 0; height: 100vh; width: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; z-index: 200; }
+    nav a { writing-mode: vertical-rl; transform: rotate(180deg); text-decoration: none; color: var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.35; transition: opacity 0.25s; }
+    nav a:hover, nav a.active { opacity: 1; }
+    #top-btn { position: fixed; bottom: 26px; right: 22px; writing-mode: vertical-rl; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: 0.3; transition: opacity 0.2s; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    #top-btn::before { content: '↑'; font-size: 13px; }
+    #top-btn:hover { opacity: 0.8; }
+    main { padding-left: 42px; position: relative; z-index: 1; }
+    #hero { padding: 10vh 52px 6vh; display: flex; flex-direction: column; }
+    h1.name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(80px, 13vw, 200px); line-height: 0.88; letter-spacing: -0.01em; color: var(--ink); }
+    .hero-sub { text-align: right; margin-top: 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; line-height: 1.6; }
+    .hero-sub em { font-style: italic; font-weight: 300; }
+    .sec-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 60px 52px 48px; }
+
+    /* PAINTINGS */
+    #paintings { padding: 0 52px 120px; }
+
+    /* Row = full width flex container, block sits left or right */
+    .work-row { display: flex; justify-content: flex-start; margin-bottom: 72px; }
+    .work-row.even { justify-content: flex-end; }
+
+    /* Block = image stacked above info, fixed width */
+    .work-block { width: var(--img-w); flex-shrink: 0; }
+
+    .work-card { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+    .work-img-wrap { position: relative; overflow: hidden; }
+    .work-img { width: var(--img-w); height: var(--img-h); object-fit: cover; display: block; transition: transform 0.5s ease, opacity 0.4s; }
+    .work-card:hover .work-img { transform: scale(1.03); opacity: 0.88; }
+    .work-hover-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .work-hover-label span { background: var(--ink); color: var(--cream); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 7px 18px; }
+    .work-card:hover .work-hover-label { opacity: 1; }
+
+    /* Info is always directly under the image */
+    .work-info { padding-top: 13px; }
+    .work-title { font-size: 13px; font-weight: 400; margin-bottom: 3px; }
+    .work-dims { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 9px; }
+    .work-price { font-size: 13px; font-weight: 300; color: var(--muted); margin-bottom: 9px; }
+    .btn { display: inline-block; padding: 6px 16px; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; border: none; cursor: pointer; font-family: 'Barlow', sans-serif; white-space: nowrap; }
+    .btn-buy { background: var(--ink); color: var(--cream) !important; transition: background 0.2s; }
+    .btn-buy:hover { background: var(--accent); }
+    .btn-sold { background: var(--ink); color: var(--cream) !important; opacity: 0.28; cursor: default; pointer-events: none; }
+
+    footer { border-top: 1px solid rgba(26,24,20,0.1); padding: 32px 52px; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; color: var(--muted); position: relative; z-index: 1; }
+    .fi { opacity: 0; transform: translateY(16px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fi.in { opacity: 1; transform: none; }
+
+    @media (max-width: 700px) {
+      .work-row, .work-row.even { justify-content: flex-start; }
+      .work-block { width: 100%; }
+      .work-img { width: 100%; height: auto; aspect-ratio: 4/5; }
+    }
+    @media (max-width: 580px) {
+      #hero, #paintings, .sec-label, footer { padding-left: 16px; padding-right: 16px; }
+      h1.name { font-size: clamp(64px, 18vw, 120px); }
+    }
+  </style>
+</head>
+<body>
+<canvas id="grain" aria-hidden="true"></canvas>
+<nav aria-label="Main navigation">
+  <a href="index.html" class="active">Paintings</a>
+  <a href="films.html">Films</a>
+  <a href="bio.html">Bio</a>
+</nav>
+<a href="#hero" id="top-btn" aria-label="Back to top">Top</a>
+<main>
+  <section id="hero">
+    <h1 class="name fi">dejvi<br>van de<br>veire</h1>
+    <p class="hero-sub fi"><em>artist, filmmaker</em><br>Brussels, Belgium</p>
+  </section>
+  <p class="sec-label" aria-hidden="true">Paintings</p>
+  <section id="paintings" aria-label="Paintings for sale"></section>
+  <footer>
+    <address style="font-style:normal">Dejvi Van De Veire · Brussels, Belgium</address>
+    <span>© 2025</span>
+  </footer>
+</main>
+<script>
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ && cols.length < headers.length - 1) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+      cols.push(cur.trim());
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, ''));
+      return obj;
+    });
+  }
+
+  function buildRow(p, index) {
+    const sold = p.sold === 'true';
+    const price = sold ? 'Sold' : '€' + p.price;
+    const isEven = index % 2 !== 0;
+    const folder = 'images/' + p.name + ' Images';
+    const mainImg = folder + '/' + p.name + ' Main Image.webp';
+
+    const row = document.createElement('div');
+    row.className = 'work-row fi' + (isEven ? ' even' : '');
+    row.innerHTML =
+      '<div class="work-block">' +
+        '<a href="painting.html?id=' + p.id + '" class="work-card" aria-label="View ' + p.name + '">' +
+          '<div class="work-img-wrap">' +
+            '<img src="' + mainImg + '" alt="' + p.name + ' painting by Dejvi Van De Veire" class="work-img" loading="lazy">' +
+            '<div class="work-hover-label"><span>View work</span></div>' +
+          '</div>' +
+        '</a>' +
+        '<div class="work-info">' +
+          '<p class="work-title">' + p.name + '</p>' +
+          '<p class="work-dims">' + p.width + ' × ' + p.height + ' cm</p>' +
+          '<p class="work-price">' + price + '</p>' +
+          (sold
+            ? '<span class="btn btn-sold">Sold</span>'
+            : '<a href="painting.html?id=' + p.id + '" class="btn btn-buy">Buy now</a>'
+          ) +
+        '</div>' +
+      '</div>';
+    return row;
+  }
+
+  fetch('paintings.csv')
+    .then(r => r.text())
+    .then(text => {
+      const paintings = parseCSV(text);
+      const section = document.getElementById('paintings');
+      paintings.forEach((p, i) => section.appendChild(buildRow(p, i)));
+      requestAnimationFrame(() => {
+        const obs = new IntersectionObserver(entries => {
+          entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('in'), i * 55); obs.unobserve(e.target); } });
+        }, { threshold: 0.07 });
+        document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+      });
+    })
+    .catch(() => { document.getElementById('paintings').innerHTML = '<p style="color:var(--muted);font-size:13px">Unable to load paintings.</p>'; });
+
+  const c = document.getElementById('grain'), ctx = c.getContext('2d');
+  let last = 0; const iv = 1000/16;
+  function resize(){ c.width = innerWidth; c.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function grain(t){ requestAnimationFrame(grain); if(t-last<iv) return; last=t;
+    const d=ctx.createImageData(c.width,c.height),b=d.data;
+    for(let i=0;i<b.length;i+=4){const v=(Math.random()*255)|0;b[i]=b[i+1]=b[i+2]=v;b[i+3]=255;}
+    ctx.putImageData(d,0,0); }
+  requestAnimationFrame(grain);
+
+  const heroObs = new IntersectionObserver(entries => {
+    entries.forEach((e,i) => { if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('in'),i*100); heroObs.unobserve(e.target); } });
+  }, {threshold:0.1});
+  document.querySelectorAll('#hero .fi').forEach(el => heroObs.observe(el));
+</script>
+</body>
+</html>
