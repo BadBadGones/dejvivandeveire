@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painting — Dejvi Van De Veire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream: #f0ebe4; --ink: #1a1814; --muted: #8a8278; --accent: #c94a2a; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--ink); font-family: 'Barlow', sans-serif; font-weight: 300; overflow-x: hidden; min-height: 100vh; }
+    #grain { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.18; }
+    nav { position: fixed; left: 0; top: 0; height: 100vh; width: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; z-index: 200; }
+    nav a { writing-mode: vertical-rl; transform: rotate(180deg); text-decoration: none; color: var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.35; transition: opacity 0.25s; }
+    nav a:hover, nav a.active { opacity: 1; }
+    .back-link { position: fixed; top: 28px; left: 60px; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: 0.45; z-index: 200; transition: opacity 0.2s; display: flex; align-items: center; gap: 7px; }
+    .back-link::before { content: '←'; font-size: 13px; }
+    .back-link:hover { opacity: 1; }
+    main { padding-left: 42px; position: relative; z-index: 1; min-height: 100vh; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); opacity: 0.5; }
+    #detail { display: none; }
+
+    .detail-wrap {
+      padding: 14vh 52px 80px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 72px;
+      align-items: start;
+    }
+    .main-img-wrap { width: 100%; overflow: hidden; }
+    .main-img { width: 100%; display: block; max-height: 85vh; object-fit: contain; object-position: top left; }
+    .detail-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .detail-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: zoom-in; transition: opacity 0.3s; }
+    .detail-img:hover { opacity: 0.82; }
+
+    /* LIGHTBOX */
+    #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 999; align-items: center; justify-content: center; cursor: zoom-out; }
+    #lightbox.open { display: flex; }
+    #lightbox img { max-width: 92vw; max-height: 92vh; object-fit: contain; display: block; }
+    #lightbox-close { position: absolute; top: 22px; right: 26px; color: rgba(242,237,232,0.55); font-size: 22px; cursor: pointer; background: none; border: none; font-family: 'Barlow', sans-serif; line-height: 1; }
+
+    /* INFO */
+    .info-col { padding-top: 8px; }
+    .painting-meta-top { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; line-height: 1.8; }
+    h1.painting-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(44px, 5.5vw, 72px); line-height: 0.9; color: var(--ink); margin-bottom: 16px; }
+    .avail-badge { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 18px; }
+    .avail-badge.available { background: #2a6b3a; color: #fff; }
+    .avail-badge.sold-badge { background: rgba(26,24,20,0.1); color: var(--muted); }
+    .painting-price { font-size: 22px; font-weight: 300; color: var(--ink); margin-bottom: 28px; }
+    .painting-price.sold-price { color: var(--muted); font-size: 16px; }
+    .painting-desc { font-size: 14px; font-weight: 300; line-height: 1.85; color: var(--ink); max-width: 46ch; margin-bottom: 32px; border-top: 1px solid rgba(26,24,20,0.1); padding-top: 26px; }
+    .btn-cta { display: inline-block; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: background 0.2s; font-family: 'Barlow', sans-serif; }
+    .btn-cta.available { background: var(--ink); color: var(--cream) !important; }
+    .btn-cta.available:hover { background: var(--accent); }
+    .btn-cta.sold-btn { background: var(--ink); color: var(--cream) !important; opacity: 0.25; cursor: not-allowed; }
+
+    /* FORM */
+    #form-overlay { display: none; position: fixed; inset: 0; background: rgba(10,8,6,0.65); z-index: 500; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(3px); }
+    #form-overlay.open { display: flex; }
+    .form-modal { background: var(--cream); padding: 48px 44px; max-width: 480px; width: 100%; position: relative; }
+    .form-close { position: absolute; top: 18px; right: 20px; background: none; border: none; cursor: pointer; font-size: 20px; color: var(--muted); line-height: 1; font-family: 'Barlow', sans-serif; }
+    .form-close:hover { color: var(--ink); }
+    .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; line-height: 0.95; color: var(--ink); margin-bottom: 6px; }
+    .form-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 32px; font-weight: 300; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+    .form-group input, .form-group textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(26,24,20,0.2); padding: 8px 0; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 300; color: var(--ink); outline: none; transition: border-color 0.2s; resize: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--ink); }
+    .form-group input[readonly] { color: var(--muted); cursor: default; }
+    .form-group textarea { min-height: 80px; }
+    .form-submit { width: 100%; padding: 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border: none; cursor: pointer; background: var(--ink); color: var(--cream); transition: background 0.2s; margin-top: 8px; font-family: 'Barlow', sans-serif; }
+    .form-submit:hover { background: var(--accent); }
+    .form-submit:disabled { opacity: 0.5; cursor: wait; }
+    .form-note { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.6; font-weight: 300; }
+    #form-success { display: none; text-align: center; padding: 20px 0; }
+    #form-success .checkmark { font-size: 32px; margin-bottom: 16px; display: block; }
+    #form-success h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--ink); margin-bottom: 8px; }
+    #form-success p { font-size: 13px; color: var(--muted); font-weight: 300; max-width: 32ch; margin: 0 auto; }
+
+    footer { border-top: 1px solid rgba(26,24,20,0.1); padding: 32px 52px; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; color: var(--muted); position: relative; z-index: 1; }
+    .fi { opacity: 0; transform: translateY(16px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fi.in { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) { .detail-wrap { grid-template-columns: 1fr; gap: 40px; padding-top: 10vh; } .main-img { max-height: 70vh; } }
+    @media (max-width: 580px) { .detail-wrap, footer { padding-left: 16px; padding-right: 16px; } .form-modal { padding: 36px 24px; } .back-link { left: 52px; top: 16px; } }
+  </style>
+</head>
+<body>
+<canvas id="grain" aria-hidden="true"></canvas>
+<nav aria-label="Main navigation">
+  <a href="index.html" class="active">Paintings</a>
+  <a href="films.html">Films</a>
+  <a href="bio.html">Bio</a>
+</nav>
+<a href="index.html" class="back-link">All paintings</a>
+<main>
+  <div id="loading">Loading</div>
+  <div id="detail">
+    <div class="detail-wrap">
+      <div class="img-col fi">
+        <div class="main-img-wrap">
+          <img id="main-img" src="" alt="" class="main-img">
+        </div>
+        <div class="detail-imgs" id="detail-imgs"></div>
+      </div>
+      <div class="info-col fi">
+        <p class="painting-meta-top" id="p-meta"></p>
+        <h1 class="painting-title" id="p-title"></h1>
+        <span class="avail-badge" id="p-badge"></span>
+        <p class="painting-price" id="p-price"></p>
+        <p class="painting-desc" id="p-desc"></p>
+        <button class="btn-cta" id="p-cta">Buy now</button>
+      </div>
+    </div>
+    <footer>
+      <address style="font-style:normal">Dejvi Van De Veire · Brussels, Belgium</address>
+      <span>© 2025</span>
+    </footer>
+  </div>
+</main>
+
+<div id="lightbox" role="dialog" aria-label="Enlarged image">
+  <button id="lightbox-close" aria-label="Close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<div id="form-overlay" role="dialog" aria-modal="true">
+  <div class="form-modal">
+    <button class="form-close" id="form-close-btn">✕</button>
+    <div id="form-inner">
+      <h2 class="form-title">Purchase<br>Inquiry</h2>
+      <p class="form-subtitle">Dejvi will get back to you within 48 hours.</p>
+      <!--
+        Replace YOUR_FORM_ID with your Formspree form ID.
+        Go to formspree.io → New Form → set destination email → copy the ID.
+      -->
+      <form id="inquiry-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="hidden" name="_subject" id="form-subject" value="Painting inquiry">
+        <input type="text" name="_gotcha" style="display:none">
+        <div class="form-group">
+          <label for="painting-name">Painting</label>
+          <input type="text" id="painting-name" name="painting" readonly>
+        </div>
+        <div class="form-group">
+          <label for="buyer-name">Your name</label>
+          <input type="text" id="buyer-name" name="name" required placeholder="First and last name">
+        </div>
+        <div class="form-group">
+          <label for="buyer-email">Email address</label>
+          <input type="email" id="buyer-email" name="email" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="buyer-message">Message (optional)</label>
+          <textarea id="buyer-message" name="message" placeholder="Any questions about the work, shipping, etc."></textarea>
+        </div>
+        <button type="submit" class="form-submit" id="form-submit-btn">Send inquiry</button>
+        <p class="form-note">By submitting this form you agree to be contacted by Dejvi Van De Veire regarding this painting.</p>
+      </form>
+    </div>
+    <div id="form-success">
+      <span class="checkmark">✓</span>
+      <h3>Inquiry Sent</h3>
+      <p>Thank you. Dejvi will be in touch with you shortly.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const cols = [];
+      let current = '', inQuote = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQuote = !inQuote; }
+        else if (ch === ',' && !inQuote && cols.length < headers.length - 1) { cols.push(current.trim()); current = ''; }
+        else { current += ch; }
+      }
+      cols.push(current.trim());
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, ''));
+      return obj;
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  fetch('paintings.csv')
+    .then(r => r.text())
+    .then(text => {
+      const paintings = parseCSV(text);
+      const p = paintings.find(p => p.id === id);
+      document.getElementById('loading').style.display = 'none';
+
+      if (!p) {
+        document.getElementById('loading').style.display = 'flex';
+        document.getElementById('loading').innerHTML = 'Painting not found. <a href="index.html" style="color:inherit;margin-left:8px;text-decoration:underline">Back</a>';
+        return;
+      }
+
+      document.getElementById('detail').style.display = 'block';
+      document.title = `${p.name} — Dejvi Van De Veire`;
+
+      const sold = p.sold === 'true';
+      const folder = `images/${p.name} Images`;
+
+      document.getElementById('main-img').src = `${folder}/${p.name} Main Image.webp`;
+      document.getElementById('main-img').alt = `${p.name} — painting by Dejvi Van De Veire`;
+
+      // Materials, dimensions — from CSV, no hardcoding
+      document.getElementById('p-meta').innerHTML =
+        `${p.materials}<br>${p.width} × ${p.height} cm`;
+
+      document.getElementById('p-title').textContent = p.name;
+      document.getElementById('p-desc').textContent = p.description;
+
+      if (sold) {
+        document.getElementById('p-price').textContent = 'Sold';
+        document.getElementById('p-price').classList.add('sold-price');
+        const badge = document.getElementById('p-badge');
+        badge.textContent = 'Sold'; badge.classList.add('sold-badge');
+        const cta = document.getElementById('p-cta');
+        cta.textContent = 'Sold'; cta.classList.add('sold-btn'); cta.disabled = true;
+      } else {
+        document.getElementById('p-price').textContent = '€' + p.price;
+        const badge = document.getElementById('p-badge');
+        badge.textContent = 'Available'; badge.classList.add('available');
+        const cta = document.getElementById('p-cta');
+        cta.textContent = 'Buy now'; cta.classList.add('available');
+        cta.addEventListener('click', openForm);
+      }
+
+      document.getElementById('painting-name').value = `${p.name} — €${p.price}`;
+      document.getElementById('form-subject').value = `Purchase inquiry: ${p.name}`;
+
+      // Detail images — tries 2, 3, 4, 5; hides any that don't exist
+      const dimsEl = document.getElementById('detail-imgs');
+      [2, 3, 4, 5].forEach(n => {
+        const img = document.createElement('img');
+        img.src = `${folder}/${p.name} Image ${n}.webp`;
+        img.alt = `${p.name} — detail ${n}`;
+        img.className = 'detail-img';
+        img.loading = 'lazy';
+        img.width = 600; img.height = 600;
+        img.onerror = function() { this.remove(); };
+        img.addEventListener('click', () => openLightbox(img.src, img.alt));
+        dimsEl.appendChild(img);
+      });
+
+      setTimeout(() => {
+        document.querySelectorAll('.fi').forEach((el, i) => {
+          setTimeout(() => el.classList.add('in'), i * 100);
+        });
+      }, 80);
+    })
+    .catch(() => {
+      document.getElementById('loading').textContent = 'Could not load painting data.';
+    });
+
+  // Lightbox
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  function openLightbox(src, alt) { lightboxImg.src = src; lightboxImg.alt = alt; lightbox.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeLightbox() { lightbox.classList.remove('open'); document.body.style.overflow = ''; }
+  lightbox.addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-close').addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
+
+  // Form
+  const overlay = document.getElementById('form-overlay');
+  function openForm() { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeForm() { overlay.classList.remove('open'); document.body.style.overflow = ''; }
+  document.getElementById('form-close-btn').addEventListener('click', closeForm);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeForm(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closeForm(); } });
+
+  const form = document.getElementById('inquiry-form');
+  const submitBtn = document.getElementById('form-submit-btn');
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    submitBtn.disabled = true; submitBtn.textContent = 'Sending...';
+    try {
+      const res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' } });
+      if (res.ok) { document.getElementById('form-inner').style.display = 'none'; document.getElementById('form-success').style.display = 'block'; }
+      else { throw new Error(); }
+    } catch {
+      submitBtn.disabled = false; submitBtn.textContent = 'Try again';
+      alert('Something went wrong. Please email: hello@dejvivandeveire.com');
+    }
+  });
+
+  // Grain
+  const c = document.getElementById('grain'), ctx = c.getContext('2d');
+  let last = 0; const iv = 1000/16;
+  function resize(){ c.width = innerWidth; c.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function grain(t){ requestAnimationFrame(grain); if(t-last<iv) return; last=t;
+    const d=ctx.createImageData(c.width,c.height),b=d.data;
+    for(let i=0;i<b.length;i+=4){const v=(Math.random()*255)|0;b[i]=b[i+1]=b[i+2]=v;b[i+3]=255;}
+    ctx.putImageData(d,0,0); }
+  requestAnimationFrame(grain);
+</script>
+</body>
+</html>
