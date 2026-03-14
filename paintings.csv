@@ -8,4 +8,4 @@ ext,EXT,680,60,80,false,Mixed media on canvas,Lorem ipsum dolor sit amet consect
 fruits,Fruits,580,50,70,false,Oil on canvas,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 have-you-been-happy,Have you been happy,1100,110,130,false,Oil on linen,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 i-broke-my-nose,I broke my nose,720,65,85,false,Acrylic on canvas,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-kids,Kids,890,80,100,false,Mixed media on canvas,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+kids,Kids,890,80,100,true,Mixed media on canvas,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
